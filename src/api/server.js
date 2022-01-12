@@ -205,6 +205,7 @@ export const handlers = [
     )
   }),
   rest.get('/fakeApi/notifications', (req, res, ctx) => {
+    console.log('\n\n### get /notifications')
     const numNotifications = getRandomInt(1, 5)
 
     let notifications = generateRandomNotifications(

@@ -1,8 +1,14 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
 import { client } from '../../api/client'
 
 // selectors
 const getPosts = state => state.posts.items
+const getPostsByUserId = userId => createSelector(
+  getPosts, // input selector, yields param 1 of output selector
+  state => userId, // input selector, yields param 2 of output selector
+  // output selector, run only when any of the input selector results have changed
+  (posts, userId) => posts.filter(post => post.user === userId)
+)
 const getPost = id => state => state.posts.items.find(post => post.id === id)
 const getStatus = state => state.posts.status
 const getError = state => state.posts.error
@@ -49,20 +55,19 @@ const postsSlice = createSlice({
       prepare(id, reaction) { return { payload: { id, reaction }}}
     }
   },
-  extraReducers: builder => {
-    builder
-      .addCase(fetchPosts.pending, (state, action) => { state.status = 'loading' })
-      .addCase(fetchPosts.fulfilled, (state, action) => { 
+  extraReducers: {
+      [ fetchPosts.pending ]: (state, action) => { state.status = 'loading' },
+      [ fetchPosts.fulfilled ]: (state, action) => { 
         state.status = 'succeeded'
         state.items = state.items.concat(action.payload)
-      })
-      .addCase(fetchPosts.rejected, (state, action) => {
+      },
+      [ fetchPosts.rejected ]: (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
-      })
-      .addCase(addPost.fulfilled, (state, action) => {
+      },
+      [ addPost.fulfilled ]: (state, action) => {
         state.items.push(action.payload)
-      })
+      },
   }
 })
 
@@ -71,6 +76,7 @@ const { update, react } = postsSlice.actions
 export {
   getPost,
   getPosts,
+  getPostsByUserId,
   getStatus,
   getError,
   fetchPosts,
