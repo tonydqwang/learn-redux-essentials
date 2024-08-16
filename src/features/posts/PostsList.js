@@ -1,34 +1,33 @@
 import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { getPosts, getStatus, getError, fetchPosts } from './postsSlice'
+import { getPost, getStatus, getError, fetchPosts, getPostIds } from './postsSlice'
 import PostAuthor from './PostAuthor'
 import TimeAgo from './TimeAgo'
 import ReactionButtons from './ReactionButtons'
 import { Spinner } from '../../components/Spinner'
 
   
-const PostExcerpt = React.memo(({ post }) =>
-  <article className="post-excerpt" key={post.id}>
-    <h3>{post.title}</h3>
-    <PostAuthor user={post.user} />
-    <TimeAgo timestamp={post.date} />
-    <p className="post-content">{post.content.substring(0, 100)}</p>
-    <ReactionButtons post={post} />
-    <Link to={`/posts/${post.id}`} className='button muted-button'>View Post</Link>
-  </article>)
+const PostExcerpt = ({ id }) => {
+  const post = useSelector(state => getPost(state, id))
+  return (
+    <article className="post-excerpt" key={post.id}>
+      <h3>{post.title}</h3>
+      <PostAuthor user={post.user} />
+      <TimeAgo timestamp={post.date} />
+      <p className="post-content">{post.content.substring(0, 100)}</p>
+      <ReactionButtons post={post} />
+      <Link to={`/posts/${post.id}`} className='button muted-button'>View Post</Link>
+    </article>
+  )
+}
 
 const PostsList = (props) => {
   const dispatch = useDispatch()
-  const posts = useSelector(getPosts)
+  const postIds = useSelector(getPostIds)
   const status = useSelector(getStatus)
   const error = useSelector(getError)
-
-  const orderedPosts = posts.slice().sort((a,b)=> {
-    return b.date.toString().localeCompare(a.date)
-  })
-
-  const renderedPosts = orderedPosts.map(post => <PostExcerpt key={post.id} post={post}/> )
+  const renderedPosts = postIds.map(id => <PostExcerpt key={id} id={id}/> )
 
   useEffect(() => {
     if (status === 'idle') dispatch(fetchPosts())
